@@ -350,4 +350,14 @@ export const InventoryPage: React.FC = () => {
 
       {/* Alert Modal */}
       {alertMessage && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-b
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all text-center">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">შეტყობინება / Notification</h3>
+            <p className="text-sm text-gray-600 mb-6">{alertMessage}</p>
+            <button onClick={() => setAlertMessage(null)} className="w-full px-4 py-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700 font-bold">OK</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

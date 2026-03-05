@@ -50,9 +50,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     setConfirmModal({
       message: 'WARNING: Are you sure you want to completely Reset for Production? This will permanently wipe ALL DATA from the system.',
       onConfirm: () => {
-        clearAllData();
-        // Explicitly wipe the localStorage layer to guarantee zero artifacts
-        localStorage.removeItem('cost-control-storage');
+        // Safe clear: Wipes products, dishes, sales, purchases, and audits, but keeps Auth State & Settings intact.
+        clearAllData(); 
         
         setAlertMessage('System successfully reset for production use. Reloading...');
         setTimeout(() => {

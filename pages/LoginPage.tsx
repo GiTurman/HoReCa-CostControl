@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { t } from '../i18n';
 import { Lock, ArrowRight, AlertCircle, ChefHat } from 'lucide-react';
@@ -7,20 +7,25 @@ import { Lock, ArrowRight, AlertCircle, ChefHat } from 'lucide-react';
 export const LoginPage: React.FC = () => {
   const { language, login, isAuthenticated } = useAppStore();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  // If already authenticated, redirect to the app
+  // Determine where to send the user after a successful login.
+  // If they were intercepted by RequireAuth, send them back to their requested URL.
+  const from = location.state?.from?.pathname || '/HORECA/COSTCONTROL/123456789/dashboard';
+
+  // If already authenticated, redirect to the app securely
   if (isAuthenticated) {
-    return <Navigate to="/HORECA/COSTCONTROL/123456789/dashboard" replace />;
+    return <Navigate to={from} replace />;
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const success = login(password);
     if (success) {
-      navigate('/HORECA/COSTCONTROL/123456789/dashboard', { replace: true });
+      navigate(from, { replace: true });
     } else {
       setError(t(language, 'invalidPassword'));
       setPassword('');
