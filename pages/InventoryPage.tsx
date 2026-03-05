@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppStore } from '../store';
 import { t } from '../i18n';
-import { Calendar, Download, Boxes, Save } from 'lucide-react';
+import { Calendar, Download, Boxes, Save, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 export const InventoryPage: React.FC = () => {
@@ -9,6 +9,7 @@ export const InventoryPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [actualBalances, setActualBalances] = useState<Record<string, string>>({});
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const formatUnit = (unit: string) => {
     const translated = t(language, `unit_${unit}`);
@@ -95,6 +96,12 @@ export const InventoryPage: React.FC = () => {
       };
     });
   }, [selectedDate, products, purchases, sales, dishes, inventoryAudits]);
+
+  const filteredInventoryData = useMemo(() => {
+    if (!searchQuery.trim()) return inventoryData;
+    const query = searchQuery.toLowerCase().trim();
+    return inventoryData.filter(item => item.name.toLowerCase().includes(query));
+  }, [inventoryData, searchQuery]);
 
   const handleActualChange = (productId: string, value: string) => {
     setActualBalances(prev => ({
@@ -204,6 +211,28 @@ export const InventoryPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Search Filter */}
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <Search className="w-5 h-5 text-gray-400" />
+        </div>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={t(language, 'productName') + '...'}
+          className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-medium text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm transition-colors"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
       {/* Inventory Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
@@ -223,18 +252,22 @@ export const InventoryPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {inventoryData.length === 0 ? (
+              {filteredInventoryData.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="px-6 py-16 text-center">
                      <div className="flex flex-col items-center justify-center text-gray-500">
                       <Boxes className="w-10 h-10 text-gray-300 mb-3" />
-                      <span className="text-base font-medium text-gray-700">{t(language, 'noProducts')}</span>
-                      <p className="text-sm mt-1">Add products via Purchases to start tracking inventory.</p>
+                      <span className="text-base font-medium text-gray-700">
+                        {searchQuery.trim() ? (language === 'ka' ? 'პროდუქტი ვერ მოიძებნა' : 'No products found') : t(language, 'noProducts')}
+                      </span>
+                      <p className="text-sm mt-1">
+                        {searchQuery.trim() ? (language === 'ka' ? 'სცადეთ სხვა საძიებო სიტყვა' : 'Try a different search term') : 'Add products via Purchases to start tracking inventory.'}
+                      </p>
                     </div>
                   </td>
                 </tr>
               ) : (
-                inventoryData.map((item) => {
+                filteredInventoryData.map((item) => {
                   const actualStr = actualBalances[item.id];
                   const hasActual = actualStr !== undefined && actualStr !== '';
                   const actualVal = hasActual ? Number(actualStr) : item.expectedBalance; // Compare against expected if blank
@@ -317,14 +350,4 @@ export const InventoryPage: React.FC = () => {
 
       {/* Alert Modal */}
       {alertMessage && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all text-center">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">შეტყობინება / Notification</h3>
-            <p className="text-sm text-gray-600 mb-6">{alertMessage}</p>
-            <button onClick={() => setAlertMessage(null)} className="w-full px-4 py-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700 font-bold">OK</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-b
