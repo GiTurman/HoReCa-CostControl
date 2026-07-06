@@ -3,6 +3,7 @@ import { useAppStore } from '../store';
 import { t } from '../i18n';
 import { Settings, User, Shield, Save, KeyRound, AlertCircle, CheckCircle2, History, ChevronDown, ChevronRight, Clock, Download, Trash2, HardDrive, DownloadCloud, UploadCloud } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { BackupData, createBackupEnvelope, validateBackupPayload } from '../utils/backupValidation';
 
 export const SettingsPage: React.FC = () => {
   const { language, username, updatePassword, activityLogs, clearLogs, restoreData } = useAppStore();
@@ -81,7 +82,7 @@ export const SettingsPage: React.FC = () => {
   // --- Backup & Restore Logic ---
   const handleBackupData = () => {
     const state = useAppStore.getState();
-    const dataToExport = {
+    const dataToExport: BackupData = {
       products: state.products,
       purchases: state.purchases,
       sales: state.sales,
@@ -90,7 +91,7 @@ export const SettingsPage: React.FC = () => {
       activityLogs: state.activityLogs,
     };
     
-    const jsonString = JSON.stringify(dataToExport, null, 2);
+    const jsonString = JSON.stringify(createBackupEnvelope(dataToExport), null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     
@@ -116,13 +117,19 @@ export const SettingsPage: React.FC = () => {
       try {
         const json = evt.target?.result as string;
         const parsedData = JSON.parse(json);
+        const validation = validateBackupPayload(parsedData);
+
+        if (!validation.ok) {
+          setAlert({ message: language === 'ka' ? 'Backup ფაილი არასწორია.' : 'Backup file is invalid.', type: 'error' });
+          return;
+        }
         
         // Show confirmation modal before overwriting
-        setPendingRestoreData(parsedData);
+        setPendingRestoreData(validation.data);
         setConfirmModal({
           message: t(language, 'confirmRestoreData'),
           onConfirm: () => {
-            restoreData(parsedData);
+            restoreData(validation.data || {});
             setAlert({ message: t(language, 'dataRestored'), type: 'success' });
             setPendingRestoreData(null);
           }
