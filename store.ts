@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Product, Purchase, Sale, Dish, Language, InventoryAudit, Ingredient, ActivityLog } from './types';
+import { DEFAULT_STORAGE_KEY, zustandLocalBrowserStorage } from './src/app/storage';
 
 interface AppState {
   language: Language;
@@ -460,8 +461,8 @@ export const useAppStore = create<AppState>()(
       },
     }),
     {
-      name: 'cost-control-storage',
-      storage: createJSONStorage(() => localStorage),
+      name: DEFAULT_STORAGE_KEY,
+      storage: createJSONStorage(() => zustandLocalBrowserStorage),
     }
   )
 );
