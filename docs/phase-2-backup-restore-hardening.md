@@ -2,19 +2,17 @@
 
 ## Purpose
 
-Phase 2 makes backup and restore safer without changing the current working data model.
+Phase 2 makes backup and restore safer without changing the current working data model or the main business screens.
 
-This first step adds validation helpers only. The restore screen will be connected to these helpers in a later commit after build validation passes.
+## Current situation before Phase 2
 
-## Current situation
+The Settings page was reading a selected JSON file, parsing it, and sending the parsed object directly to restoreData.
 
-The current Settings page reads a selected JSON file, parses it, and sends the parsed object to restoreData.
+That flow needed more checks before restoring data.
 
-The current flow needs more checks before restoring data.
+## Implemented safer flow
 
-## Target safer flow
-
-The safer restore flow should be:
+The safer restore flow is now:
 
 1. Parse JSON.
 2. Detect legacy backup or schema-versioned backup.
@@ -24,31 +22,59 @@ The safer restore flow should be:
 6. Stop restore before writing data when the file is invalid.
 7. Keep old valid backups restorable.
 
-## Added in this step
+## Changed files
 
 Added:
 
 - utils/backupValidation.ts
 
-This helper supports:
+Updated:
 
-- schema-versioned backup envelopes;
-- legacy direct backup objects;
-- section validation for products, purchases, sales, dishes, inventory audits, and activity logs;
-- clear validation errors;
-- no data mutation by itself.
+- pages/SettingsPage.tsx
+
+Documentation:
+
+- docs/phase-2-backup-restore-hardening.md
+
+## Backup export behavior
+
+New backup exports are schema-versioned and contain:
+
+- appName
+- schemaVersion
+- exportedAt
+- data
+
+## Restore behavior
+
+Restore accepts:
+
+- new schema-versioned backup files;
+- old valid direct backup files.
+
+Restore blocks:
+
+- invalid JSON;
+- backup files from another app;
+- backup files with unsupported future schema versions;
+- backup files where restorable sections are not arrays;
+- backup files with no restorable sections.
 
 ## Safety boundary
 
-This step intentionally does not change:
+This phase does not change:
 
-- Settings page UI;
-- restore button behavior;
-- store persistence behavior;
 - localStorage key;
-- existing backup compatibility;
-- main business screens.
+- store persistence setup;
+- product logic;
+- purchase logic;
+- menu logic;
+- sales logic;
+- inventory logic;
+- login flow.
 
-## Next step
+This phase does change the active Settings backup and restore flow, so it should be reviewed before merging.
 
-After build validation passes, the next commit can connect this helper to pages/SettingsPage.tsx and optionally use createBackupEnvelope for new backup exports.
+## Validation
+
+GitHub Actions build passed after connecting the validation helper to SettingsPage.
