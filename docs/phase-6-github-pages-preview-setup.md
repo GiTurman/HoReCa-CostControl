@@ -54,6 +54,13 @@ GitHub Pages may need to be enabled in repository settings:
 4. Save.
 5. Re-run the Deploy Preview to GitHub Pages workflow if needed.
 
+## GitHub Pages source status
+
+Status on 2026-07-06:
+
+- Source was set to GitHub Actions in repository Settings > Pages.
+- A follow-up main-branch push may be needed to trigger the new Pages workflow after the setting was saved.
+
 ## After deployment
 
 Open the preview URL and execute:
